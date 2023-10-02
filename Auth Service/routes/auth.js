@@ -1,11 +1,17 @@
 const express = require("express");
-const router = express.Router();
-const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+require("dotenv").config();
 
-const JWT_SECRET = "otto.bot";
+const JWT_SECRET = process.env.SECRET_KEY;
 
+const router = express.Router();
+
+// Route to register a new user
+// POST
+//  username: string
+//  password: string
 router.post("/register", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -17,6 +23,10 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// Route to login for an existing user
+// POST
+//  username: string
+//  password: string
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -26,6 +36,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Login failed" });
     }
 
+    // create and send an new jwt token
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
       expiresIn: "1000h",
     });

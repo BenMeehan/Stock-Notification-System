@@ -1,12 +1,29 @@
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: "database.sqlite",
-});
+require("dotenv").config();
+
+const sequelize = new Sequelize(
+  "usermgmt",
+  process.env.DATABASE_USERNAME,
+  process.env.DATABASE_PASSWORD,
+  {
+    host: process.env.DATABASE_URL,
+    dialect: "postgres",
+    port: 5432,
+    logging: false,
+    ssl: true,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  }
+);
 
 sequelize.sync();
 
+// User model
 const User = sequelize.define("User", {
   username: {
     type: Sequelize.STRING,
