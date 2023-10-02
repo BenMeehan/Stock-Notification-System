@@ -25,10 +25,13 @@ class Login extends Component {
     const { username, password } = this.state;
 
     try {
-      const response = await axios.post("http://localhost:3000/auth/login", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "https://auth-asl6.onrender.com/auth/login",
+        {
+          username,
+          password,
+        }
+      );
 
       const { token, userId } = response.data;
 

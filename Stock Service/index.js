@@ -1,11 +1,10 @@
 const amqp = require("amqplib");
 const WebSocket = require("ws");
+require("dotenv").config();
 
-const rabbitMqUrl =
-  "amqps://bonmawmv:MuGYzHoeKsiKvWvjk2X8duwZdUck1laP@lionfish.rmq.cloudamqp.com/bonmawmv";
+const rabbitMqUrl = process.env.RABBITMQ;
 
-// WebSocket server configuration
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: process.env.PORT });
 
 let rabbitMqConnection;
 let rabbitMqChannel;
@@ -25,7 +24,7 @@ async function connectToRabbitMQ() {
   }
 }
 
-// Function to generate a random stock price
+// Function to generate a random stock price - simulating an real world api for demo
 function generateRandomStockPrice() {
   return (Math.random() * (200 - 100) + 100).toFixed(2);
 }
@@ -83,5 +82,5 @@ connectToRabbitMQ().catch((error) => {
   console.error("Failed to connect to RabbitMQ:", error);
 });
 
-// Run the fetchAndPublishStockPrices function periodically
+// Run the fetchAndPublishStockPrices function periodically (10 secs)
 setInterval(fetchAndPublishStockPrices, 10 * 1000);
