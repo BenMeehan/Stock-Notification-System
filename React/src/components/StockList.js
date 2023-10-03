@@ -7,7 +7,10 @@ const StockList = (props) => {
   const [stockData, setStockData] = useState({});
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080", ["Bearer", props.token]);
+    const ws = new WebSocket("wss://stockservice.onrender.com", [
+      "Bearer",
+      props.token,
+    ]);
 
     ws.onopen = () => {
       console.log("Connected to WebSocket server");

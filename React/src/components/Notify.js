@@ -24,7 +24,7 @@ function Notify() {
 
   const sendSubscriptionToServer = (subscription, clientId) => {
     // Send a POST request to your Node.js server to save the subscription along with the client ID
-    fetch("http://localhost:3002/sub/subscribe", {
+    fetch("http://localhost:3002/sub/client", {
       method: "POST",
       body: JSON.stringify({ subscription, clientId }),
       headers: {

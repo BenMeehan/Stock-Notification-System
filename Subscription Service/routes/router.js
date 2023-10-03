@@ -1,17 +1,23 @@
 const verifyToken = require("../middleware/jwt");
 const express = require("express");
 const { Subscription, Client } = require("../models/Subscription");
+require("dotenv").config();
 
 const webpush = require("web-push");
 
 const router = express.Router();
 
-const publicKey =
-  "BIxUdWmmMbmf8EVdQGFO4ZCg31Gm0EUb_LLlf_CEeE16kh6VFQPk9tIJEGNUiLazUb5NjYOQNhnKtM-cpgv7_G0";
-const privateKey = "JAh3VcfI0IzlOErQmbt-6VVZCMZk1oGE5Tb8bkmEmsY";
+// VAPID details
+const publicKey = process.env.PUBLIC_KEY;
+const privateKey = process.env.PRIVATE_KEY;
 
 webpush.setVapidDetails("mailto:your@email.com", publicKey, privateKey);
 
+// Subscribe to a specific stock price alert
+// POST
+//  symbol: string (Stock exchange code)
+//  target: int (the target price)
+//  direction: string (alert when higher or lower or equal to target)
 router.post("/subscriptions", verifyToken, async (req, res) => {
   try {
     const { symbol, targetPrice, priceDirection } = req.body;
@@ -31,9 +37,12 @@ router.post("/subscriptions", verifyToken, async (req, res) => {
   }
 });
 
-router.post("/subscribe", async (req, res) => {
+// Add a new client for push notifications
+// POST
+//  subscription: JSON
+//  clientId: string
+router.post("/client", async (req, res) => {
   const { subscription, clientId } = req.body;
-  console.log(clientId);
   try {
     await Client.upsert({
       clientId,

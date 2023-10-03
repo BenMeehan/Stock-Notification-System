@@ -39,9 +39,11 @@ const Stock = ({ symbol, price, token }) => {
       .post("http://localhost:3002/sub/subscriptions", requestData, config)
       .then((response) => {
         console.log("Subscription created:", response.data);
+        window.alert("Subscription created");
       })
       .catch((error) => {
         console.error("Error creating subscription:", error);
+        window.alert("Error creating subscription");
       });
 
     setShowModal(false);

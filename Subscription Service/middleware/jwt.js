@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-const JWT_SECRET = "otto.bot";
+const JWT_SECRET = process.env.SECRET_KEY;
 
+// middleware to verify jwt and extract user id from it
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization;
 

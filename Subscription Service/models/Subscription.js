@@ -1,35 +1,20 @@
 const Sequelize = require("sequelize");
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage: "database.sqlite",
-});
+require("dotenv").config();
 
-sequelize.sync();
-
-const Subscription = sequelize.define(
-  "Subscription",
+const sequelize = new Sequelize(
+  "subscriptions",
+  process.env.DATABASE_USERNAME,
+  process.env.DATABASE_PASSWORD,
   {
-    userid: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
-    symbol: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-    target: {
-      type: Sequelize.FLOAT,
-      allowNull: false,
-    },
-    direction: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    },
-  },
-  {
-    uniqueKeys: {
-      unique_userid_symbol_target_direction: {
-        fields: ["userid", "symbol", "target", "direction"],
+    host: process.env.DATABASE_URL,
+    dialect: "postgres",
+    port: 5432,
+    logging: true,
+    ssl: true,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
       },
     },
   }
@@ -37,7 +22,7 @@ const Subscription = sequelize.define(
 
 const Client = sequelize.define("WebSocketConnection", {
   clientId: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: false,
   },
   subscription: {
@@ -45,6 +30,27 @@ const Client = sequelize.define("WebSocketConnection", {
     allowNull: false,
   },
 });
+
+const Subscription = sequelize.define("Subscription", {
+  userid: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  symbol: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  target: {
+    type: Sequelize.FLOAT,
+    allowNull: false,
+  },
+  direction: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+});
+
+sequelize.sync();
 
 exports.Subscription = Subscription;
 exports.Client = Client;

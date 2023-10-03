@@ -2,12 +2,12 @@ const amqp = require("amqplib");
 const { Subscription, Client } = require("../models/Subscription");
 const webpush = require("web-push");
 
-const rabbitMqUrl =
-  "amqps://bonmawmv:MuGYzHoeKsiKvWvjk2X8duwZdUck1laP@lionfish.rmq.cloudamqp.com/bonmawmv";
+const rabbitMqUrl = process.env.RABBITMQ;
 
 let rabbitMqConnection;
 let rabbitMqChannel;
 
+// connect to the rabbit MQ broker
 async function connectToRabbitMQ() {
   try {
     rabbitMqConnection = await amqp.connect(rabbitMqUrl);
@@ -22,6 +22,7 @@ async function connectToRabbitMQ() {
   }
 }
 
+// Subscribe to messages async and push them to client
 async function consumeRabbitMQ() {
   if (!rabbitMqConnection || !rabbitMqChannel) {
     await connectToRabbitMQ();
@@ -37,15 +38,19 @@ async function consumeRabbitMQ() {
       const queue = await rabbitMqChannel.assertQueue(`stock.${symbol}`);
       rabbitMqChannel.bindQueue(queue.queue, "stock-prices", `stock.${symbol}`);
 
+      // Consume from queue
       rabbitMqChannel.consume(
         queue.queue,
         async (message) => {
           const payload = JSON.parse(message.content.toString());
+
+          // Find all alert subscriptions for a stock
           const alerts = await Subscription.findAll({
             where: {
               symbol,
             },
           });
+          // const alerts = [];
           for (const alert of alerts) {
             const clientId = alert.userid;
 
@@ -54,6 +59,7 @@ async function consumeRabbitMQ() {
               body: "",
             };
 
+            // Every subscription must be higher, lower or equal to current price
             let dir = alert.dataValues.direction;
             let target = alert.dataValues.target;
             if (dir == "lower" && payload.price < target) {
@@ -66,23 +72,23 @@ async function consumeRabbitMQ() {
               continue;
             }
 
+            // get the client subscription info. (Redis will be more performant here but avoiding due to cost)
             const clientRecord = await Client.findOne({
               where: { clientId },
             });
 
-            if (!clientRecord) {
-              throw new Error("Client not found");
+            if (clientRecord) {
+              const client = clientRecord.subscription;
+
+              // push to the client
+              webpush
+                .sendNotification(client, JSON.stringify(notificationMessage))
+                .then(() => console.log("Push notification sent successfully"))
+                .catch((error) => {
+                  console.error("Error sending push notification:", error);
+                  throw error;
+                });
             }
-
-            const client = clientRecord.subscription;
-
-            webpush
-              .sendNotification(client, JSON.stringify(notificationMessage))
-              .then(() => console.log("Push notification sent successfully"))
-              .catch((error) => {
-                console.error("Error sending push notification:", error);
-                throw error;
-              });
           }
         },
         { noAck: true }
