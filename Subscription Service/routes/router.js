@@ -56,4 +56,51 @@ router.post("/client", async (req, res) => {
   }
 });
 
+router.delete("/unsubscribe/:subscriptionId", verifyToken, async (req, res) => {
+  try {
+    const subscriptionId = req.params.subscriptionId;
+    const userId = req.userId;
+
+    // Check if the subscription belongs to the current user
+    const subscription = await Subscription.findOne({
+      where: {
+        id: subscriptionId,
+        userid: userId,
+      },
+    });
+
+    if (!subscription) {
+      return res.status(404).json({ message: "Subscription not found" });
+    }
+
+    // Delete the subscription
+    await Subscription.destroy({
+      where: {
+        id: subscriptionId,
+      },
+    });
+    return res.status(200).json({ message: "Subscription unsubscribed" });
+  } catch (error) {
+    console.error("Error unsubscribing:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/subscriptions", verifyToken, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const subscriptions = await Subscription.findAll({
+      where: {
+        userid: userId,
+      },
+    });
+
+    return res.status(200).json(subscriptions);
+  } catch (error) {
+    console.error("Error fetching subscriptions:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 module.exports = router;

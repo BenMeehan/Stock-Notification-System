@@ -1,10 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const Stock = ({ symbol, price, token }) => {
   const [showModal, setShowModal] = useState(false);
   const [targetPrice, setTargetPrice] = useState("");
   const [priceDirection, setPriceDirection] = useState("higher"); // Default to "higher"
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
+  useEffect(() => {
+    // Fetch the list of subscriptions when the component mounts
+    axios
+      .get("https://subservice.onrender.com/sub/subscriptions", {
+        headers: {
+          Authorization: `${token}`,
+        },
+      })
+      .then((response) => {
+        setSubscriptions(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching subscriptions:", error);
+      });
+  }, [token]);
 
   const handleButtonClick = () => {
     setShowModal(true);
@@ -12,6 +30,10 @@ const Stock = ({ symbol, price, token }) => {
 
   const handleModalClose = () => {
     setShowModal(false);
+  };
+
+  const handleSubscriptionModalClose = () => {
+    setShowSubscriptionModal(false);
   };
 
   const handleRadioChange = (event) => {
@@ -36,7 +58,11 @@ const Stock = ({ symbol, price, token }) => {
     };
 
     axios
-      .post("http://localhost:3002/sub/subscriptions", requestData, config)
+      .post(
+        "https://subservice.onrender.com/sub/subscriptions",
+        requestData,
+        config
+      )
       .then((response) => {
         console.log("Subscription created:", response.data);
         window.alert("Subscription created");
@@ -49,6 +75,29 @@ const Stock = ({ symbol, price, token }) => {
     setShowModal(false);
   };
 
+  const handleUnsubscribe = (subscriptionId) => {
+    axios
+      .delete(
+        `https://subservice.onrender.com/sub/unsubscribe/${subscriptionId}`,
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      )
+      .then(() => {
+        // Remove the subscription from the list
+        setSubscriptions((prevSubscriptions) =>
+          prevSubscriptions.filter((sub) => sub.id !== subscriptionId)
+        );
+        window.alert("Subscription unsubscribed");
+      })
+      .catch((error) => {
+        console.error("Error unsubscribing:", error);
+        window.alert("Error unsubscribing");
+      });
+  };
+
   return (
     <div className="card">
       <div className="card-body">
@@ -56,6 +105,12 @@ const Stock = ({ symbol, price, token }) => {
         <p className="card-text">Price: {price}</p>
         <button className="btn btn-primary" onClick={handleButtonClick}>
           Set Alert
+        </button>
+        <button
+          className="btn btn-secondary ml-2"
+          onClick={() => setShowSubscriptionModal(true)}
+        >
+          View Subscriptions
         </button>
         <div
           className={`modal ${showModal ? "show" : ""}`}
@@ -134,6 +189,50 @@ const Stock = ({ symbol, price, token }) => {
                   type="button"
                   className="btn btn-secondary"
                   onClick={handleModalClose}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          className={`modal ${showSubscriptionModal ? "show" : ""}`}
+          style={{ display: showSubscriptionModal ? "block" : "none" }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Subscriptions for {symbol}</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={handleSubscriptionModalClose}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <ul>
+                  {subscriptions.map((subscription) => (
+                    <li key={subscription.id}>
+                      {console.log(subscription)}
+                      Price: {subscription.target}, Direction:{" "}
+                      {subscription.direction}
+                      <button
+                        className="btn btn-danger btn-sm ml-2"
+                        onClick={() => handleUnsubscribe(subscription.id)}
+                      >
+                        Unsubscribe
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleSubscriptionModalClose}
                 >
                   Close
                 </button>
