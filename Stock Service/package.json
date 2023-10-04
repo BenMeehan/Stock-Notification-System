@@ -4,12 +4,17 @@
   "description": "stock service api that returns stock price",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "ben meehan",
   "license": "ISC",
   "dependencies": {
     "amqplib": "^0.10.3",
+    "dotenv": "^16.3.1",
+    "jest-websocket-mock": "^2.5.0",
     "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

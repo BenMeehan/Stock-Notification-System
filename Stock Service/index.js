@@ -84,3 +84,7 @@ connectToRabbitMQ().catch((error) => {
 
 // Run the fetchAndPublishStockPrices function periodically (10 secs)
 setInterval(fetchAndPublishStockPrices, 10 * 1000);
+
+module.exports = {
+  fetchAndPublishStockPrices,
+};
